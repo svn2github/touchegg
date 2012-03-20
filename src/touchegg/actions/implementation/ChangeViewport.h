@@ -1,5 +1,5 @@
 /**
- * @file /src/touchegg/actions/implementation/MoveWindow.h
+ * @file /src/touchegg/actions/implementation/ChangeViewport.h
  *
  * This file is part of Touchégg.
  *
@@ -16,29 +16,37 @@
  * Touchégg. If not, see <http://www.gnu.org/licenses/>.
  *
  * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
- * @class  MoveWindow
+ * @class  ChangeDesktop
  */
-#ifndef MOVEWINDOW_H
-#define MOVEWINDOW_H
+#ifndef CHANGEVIEWPORT_H
+#define CHANGEVIEWPORT_H
 
 #include "src/touchegg/util/Include.h"
 #include "src/touchegg/actions/implementation/Action.h"
 
 /**
- * Moves the window under the cursor.
+ * Change the viewport.
  */
-class MoveWindow : public Action
+class ChangeViewport : public Action
 {
 
 public:
 
-    MoveWindow(const QString &settings, Window window);
+    ChangeViewport(const QString &settings, Window window);
 
     void executeStart(const QHash<QString, QVariant>& attrs);
 
     void executeUpdate(const QHash<QString, QVariant>& attrs);
 
     void executeFinish(const QHash<QString, QVariant>& attrs);
+
+private:
+
+    /**
+     * Direction to switch desktops.
+     */
+    bool next;
+
 };
 
-#endif // MOVEWINDOW_H
+#endif // CHANGEVIEWPORT_H

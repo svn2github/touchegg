@@ -1,16 +1,22 @@
 /**
  * @file /src/touchegg/actions/implementation/ResizeWindow.cpp
  *
- * @~spanish
- * Este archivo es parte del proyecto Touchégg, usted puede redistribuirlo y/o
- * modificarlo bajo los téminos de la licencia GNU GPL v3.
+ * This file is part of Touchégg.
  *
- * @~english
- * This file is part of the Touchégg project, you can redistribute it and/or
- * modify it under the terms of the GNU GPL v3.
+ * Touchégg is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License  as  published by  the  Free Software
+ * Foundation,  either version 3 of the License,  or (at your option)  any later
+ * version.
  *
+ * Touchégg is distributed in the hope that it will be useful,  but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the  GNU General Public License  for more details.
+ *
+ * You should have received a copy of the  GNU General Public License along with
+ * Touchégg. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
  * @class  ResizeWindow
- * @author José Expósito
  */
 #include "ResizeWindow.h"
 
@@ -18,50 +24,48 @@
 // **********              CONSTRUCTORS AND DESTRUCTOR             ********** //
 // ************************************************************************** //
 
-ResizeWindow::ResizeWindow(const QString& settings)
-        : Action(settings) {}
+ResizeWindow::ResizeWindow(const QString &settings, Window window)
+    : Action(settings, window) {}
 
 
 // ************************************************************************** //
 // **********                    PUBLIC METHODS                    ********** //
 // ************************************************************************** //
 
-void ResizeWindow::executeStart(const QHash<QString, QVariant>& /*attrs*/) {
-    // Obtenemos la ventana activa, ventana a mover
+void ResizeWindow::executeStart(const QHash<QString, QVariant>& /*attrs*/)
+{
+    // Vemos si la ventana a redimensionar es especial (para no hacerlo)
     Atom atomRet;
     int size;
     unsigned long numItems, bytesAfterReturn;
-    unsigned char* propRet;
+    unsigned char *propRet;
 
-    XGetWindowProperty(QX11Info::display(), QX11Info::appRootWindow(),
-            XInternAtom(QX11Info::display(), "_NET_ACTIVE_WINDOW", false),
-            0, 1, false, XA_WINDOW, &atomRet, &size, &numItems,
-            &bytesAfterReturn, &propRet);
-    this->window = *((Window *) propRet);
-    XFree(propRet);
-
-    // Vemos si es el escritorio (para no redimensionarla)
-    if(XGetWindowProperty(QX11Info::display(), this->window,
+    if (XGetWindowProperty(QX11Info::display(), this->window,
             XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE", false),
             0, 100, false, XA_ATOM, &atomRet, &size, &numItems,
             &bytesAfterReturn, &propRet) == Success) {
-        Atom* types = (Atom*)propRet;
+        Atom *types = (Atom *)propRet;
         Atom type = types[0]; // Solo miramos el primer tipo especificado
 
-        if(type == XInternAtom(QX11Info::display(),
-                "_NET_WM_WINDOW_TYPE_DESKTOP", false)) {
+        if (type == XInternAtom(QX11Info::display(),
+                "_NET_WM_WINDOW_TYPE_DESKTOP", false)
+                || type == XInternAtom(QX11Info::display(),
+                        "_NET_WM_WINDOW_TYPE_DOCK", false)
+                || type == XInternAtom(QX11Info::display(),
+                        "_NET_WM_WINDOW_TYPE_SPLASH", false)) {
             this->window = 0;
         }
         XFree(propRet);
     }
 }
 
-void ResizeWindow::executeUpdate(const QHash<QString, QVariant>& attrs) {
-    if(this->window == 0)
+void ResizeWindow::executeUpdate(const QHash<QString, QVariant>& attrs)
+{
+    if (this->window == 0)
         return;
 
     // Ángulo
-    if(!attrs.contains(GEIS_GESTURE_ATTRIBUTE_BOUNDINGBOX_X1)
+    if (!attrs.contains(GEIS_GESTURE_ATTRIBUTE_BOUNDINGBOX_X1)
             || !attrs.contains(GEIS_GESTURE_ATTRIBUTE_BOUNDINGBOX_X2)
             || !attrs.contains(GEIS_GESTURE_ATTRIBUTE_BOUNDINGBOX_Y1)
             || !attrs.contains(GEIS_GESTURE_ATTRIBUTE_BOUNDINGBOX_Y2))
@@ -72,24 +76,25 @@ void ResizeWindow::executeUpdate(const QHash<QString, QVariant>& attrs) {
     float cc = attrs.value(GEIS_GESTURE_ATTRIBUTE_BOUNDINGBOX_X2).toFloat()
             - attrs.value(GEIS_GESTURE_ATTRIBUTE_BOUNDINGBOX_X1).toFloat();
 
-    double angle = (int)(atan(co/cc) * 100);
+    double angle = (int)(atan(co / cc) * 100);
 
     double incX, incY;
-    if(angle > 75) {
+    if (angle > 75) {
         incX = 0;
         incY = 1;
-    } else if(angle < 20) {
+    } else if (angle < 20) {
         incX = 1;
         incY = 0;
     } else {
-        incX = cos(angle * (3.14/180));
-        incY = sin(angle * (3.14/180));
+        incX = cos(angle * (3.14 / 180));
+        incY = sin(angle * (3.14 / 180));
     }
 
     // Redimensionamos la ventana
     XWindowAttributes xwa;
     XGetWindowAttributes(QX11Info::display(), this->window, &xwa);
-    int inc = (int)attrs.value("radius delta").toFloat()*3;
+    int inc = (int)attrs.value(GEIS_GESTURE_ATTRIBUTE_RADIUS_DELTA).toFloat()
+            * 3;
     XResizeWindow(QX11Info::display(), this->window,
             xwa.width  + inc * incX,
             xwa.height + inc * incY);

@@ -1,16 +1,22 @@
 /**
  * @file /src/touchegg/actions/implementation/SendKeys.h
  *
- * @~spanish
- * Este archivo es parte del proyecto Touchégg, usted puede redistribuirlo y/o
- * modificarlo bajo los téminos de la licencia GNU GPL v3.
+ * This file is part of Touchégg.
  *
- * @~english
- * This file is part of the Touchégg project, you can redistribute it and/or
- * modify it under the terms of the GNU GPL v3.
+ * Touchégg is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License  as  published by  the  Free Software
+ * Foundation,  either version 3 of the License,  or (at your option)  any later
+ * version.
  *
+ * Touchégg is distributed in the hope that it will be useful,  but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the  GNU General Public License  for more details.
+ *
+ * You should have received a copy of the  GNU General Public License along with
+ * Touchégg. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
  * @class  SendKeys
- * @author José Expósito
  */
 #ifndef SENDKEYS_H
 #define SENDKEYS_H
@@ -19,91 +25,32 @@
 #include "src/touchegg/actions/implementation/Action.h"
 
 /**
- * @~spanish
- * Envía las teclas indicadas en la configuración a la ventana activa.
- *
- * @~english
- * Envía las teclas indicadas en la configuración a la ventana activa.
+ * Sends the keys indicated in the configuration to the window under the cursor.
  */
-class SendKeys : public Action {
+class SendKeys : public Action
+{
 
-    private:
+public:
 
-        /**
-         * @~spanish
-         * Teclas a mantener pulsadas mientras se envían el resto de teclas.
-         *
-         * @~english
-         * Keys to hold down while sending the rest of keys.
-         */
-        QList<KeyCode> holdDownKeys;
+    SendKeys(const QString &settings, Window window);
 
-        /**
-         * @~spanish
-         * Teclas a enviar mientras se mantienen pulsadas las holdDownKeys.
-         *
-         * @~english
-         * Keys to send while holdDownKeys are sending.
-         */
-        QList<KeyCode> pressBetweenKeys;
+    void executeStart(const QHash<QString, QVariant>& attrs);
 
-    public:
+    void executeUpdate(const QHash<QString, QVariant>& attrs);
 
-        /**
-         * @~spanish
-         * Constructor.
-         * @param settings Configuración de la acción.
-         *
-         * @~english
-         * Constructor
-         * @param settings Action settings.
-         */
-        SendKeys(const QString& settings);
+    void executeFinish(const QHash<QString, QVariant>& attrs);
 
-        /**
-         * @~spanish
-         * Parte de la acción que se ejecutará cuando el gesto se inicie.
-         * @param attrs Atributos del gestos, siendo la clave el nombre del
-         *        atributo (por ejemplo "focus x", "touches"...) y el valor el
-         *        valor del propio atributo.
-         *
-         * @~english
-         * Part of the action that will be executed when the gesture is started.
-         * @param attrs Gesture attributes, where the key is the name of the
-         *        attribute (ie "focus x", "touches") and the value the value of
-         *        the attribute.
-         */
-        void executeStart(const QHash<QString, QVariant>& attrs);
+private:
 
-        /**
-         * @~spanish
-         * Parte de la acción que se ejecutará cuando el gesto se actualice.
-         * @param attrs Atributos del gestos, siendo la clave el nombre del
-         *        atributo (por ejemplo "focus x", "touches"...) y el valor el
-         *        valor del propio atributo.
-         *
-         * @~english
-         * Part of the action that will be executed when the gesture is updated.
-         * @param attrs Gesture attributes, where the key is the name of the
-         *        attribute (ie "focus x", "touches") and the value the value of
-         *        the attribute.
-         */
-        void executeUpdate(const QHash<QString, QVariant>& attrs);
+    /**
+     * Keys to hold down while sending the rest of keys.
+     */
+    QList<KeyCode> holdDownKeys;
 
-        /**
-         * @~spanish
-         * Parte de la acción que se ejecutará cuando el gesto se finalice.
-         * @param attrs Atributos del gestos, siendo la clave el nombre del
-         *        atributo (por ejemplo "focus x", "touches"...) y el valor el
-         *        valor del propio atributo.
-         *
-         * @~english
-         * Part of the action that will be executed when the gesture finish.
-         * @param attrs Gesture attributes, where the key is the name of the
-         *        attribute (ie "focus x", "touches") and the value the value of
-         *        the attribute.
-         */
-        void executeFinish(const QHash<QString, QVariant>& attrs);
+    /**
+     * Keys to send while holdDownKeys are sending.
+     */
+    QList<KeyCode> pressBetweenKeys;
 
 };
 

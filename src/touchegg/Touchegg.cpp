@@ -1,16 +1,22 @@
 /**
  * @file /src/touchegg/Touchegg.cpp
  *
- * @~spanish
- * Este archivo es parte del proyecto Touchégg, usted puede redistribuirlo y/o
- * modificarlo bajo los téminos de la licencia GNU GPL v3.
+ * This file is part of Touchégg.
  *
- * @~english
- * This file is part of the Touchégg project, you can redistribute it and/or
- * modify it under the terms of the GNU GPL v3.
+ * Touchégg is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License  as  published by  the  Free Software
+ * Foundation,  either version 3 of the License,  or (at your option)  any later
+ * version.
  *
+ * Touchégg is distributed in the hope that it will be useful,  but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the  GNU General Public License  for more details.
+ *
+ * You should have received a copy of the  GNU General Public License along with
+ * Touchégg. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
  * @class  Touchegg
- * @author José Expósito
  */
 #include "Touchegg.h"
 
@@ -18,40 +24,63 @@
 // **********              CONSTRUCTORS AND DESTRUCTOR             ********** //
 // ************************************************************************** //
 
-Touchegg::Touchegg() {
-    // Inicializamos la configuración
-    Config::loadConfig();
+Touchegg::Touchegg(int &argc, char **argv)
+    : QApplication(argc, argv),
+      windowListener(new WindowListener(this)),
+      gestureCollector(new GestureCollector(this)),
+      gestureHandler(new GestureHandler(this))
+{
+    qDebug() << "Try to make a multitouch gesture. If everything goes well the "
+            "information about the gesture must appear";
 
-    // Inicializamos los atributos
-    this->gestureCollector = new GestureCollector();
-    this->gestureHandler   = new GestureHandler();
-
-    // Conectamos GeisLoop con GestureHandler para que el último trate los
-    // eventos que recoge el primero.
-    qRegisterMetaType<GeisGestureType>("GeisGestureType");
-    qRegisterMetaType<GeisGestureId>("GeisGestureId");
-
-    connect(gestureCollector, SIGNAL(executeGestureStart(
-            GeisGestureType,GeisGestureId,QHash<QString,QVariant>)),
-            gestureHandler, SLOT(executeGestureStart(
-            GeisGestureType,GeisGestureId,QHash<QString,QVariant>)));
-    connect(gestureCollector, SIGNAL(executeGestureUpdate(
-            GeisGestureType,GeisGestureId,QHash<QString,QVariant>)),
-            gestureHandler, SLOT(executeGestureUpdate(
-            GeisGestureType,GeisGestureId,QHash<QString,QVariant>)));
-    connect(gestureCollector, SIGNAL(executeGestureFinish(
-            GeisGestureType,GeisGestureId,QHash<QString,QVariant>)),
-            gestureHandler, SLOT(executeGestureFinish(
-            GeisGestureType,GeisGestureId,QHash<QString,QVariant>)));
-
-    // Lanzamos GeisLoop en un hilo para no congelar el bucle de eventos de Qt
-    this->gestureCollector->start();
+    connect(this->gestureCollector, SIGNAL(ready()), this, SLOT(start()));
 }
 
-Touchegg::~Touchegg() {
-    if(this->gestureCollector->isRunning())
-        this->gestureCollector->exit();
 
-    delete this->gestureCollector;
-    delete this->gestureHandler;
+// ************************************************************************** //
+// **********                   PROTECTED METHODS                  ********** //
+// ************************************************************************** //
+
+bool Touchegg::x11EventFilter(XEvent *event)
+{
+    this->windowListener->x11Event(event);
+    return false;
+}
+
+
+// ************************************************************************** //
+// **********                    PRIVATE SLOTS                     ********** //
+// ************************************************************************** //
+
+void Touchegg::start()
+{
+    // Conectamos el WindowListener con el GestureCollector para recoger los
+    // eventos multitouch en las ventanas creadas si corresponde
+    connect(this->windowListener, SIGNAL(windowCreated(Window)),
+            this->gestureCollector, SLOT(addWindow(Window)));
+    connect(this->windowListener, SIGNAL(windowDeleted(Window)),
+            this->gestureCollector, SLOT(removeWindow(Window)));
+
+    // Conectamos el GestureCollector con el GestureHandler para que el último
+    // trate los eventos que recoge el primero
+    connect(gestureCollector, SIGNAL(executeGestureStart(
+            QString, int, QHash<QString, QVariant>)),
+            gestureHandler, SLOT(executeGestureStart(
+                    QString, int, QHash<QString, QVariant>)));
+    connect(gestureCollector, SIGNAL(executeGestureUpdate(
+            QString, int, QHash<QString, QVariant>)),
+            gestureHandler, SLOT(executeGestureUpdate(
+                    QString, int, QHash<QString, QVariant>)));
+    connect(gestureCollector, SIGNAL(executeGestureFinish(
+            QString, int, QHash<QString, QVariant>)),
+            gestureHandler, SLOT(executeGestureFinish(
+                    QString, int, QHash<QString, QVariant>)));
+
+    // Nos suscribimos a los gestos globales
+    this->gestureCollector->addWindow(QX11Info::appRootWindow());
+
+    // Nos suscribimos a los gestos específicos
+    foreach(Window w, this->windowListener->getClientList()) {
+        this->gestureCollector->addWindow(w);
+    }
 }

@@ -1,5 +1,5 @@
 /**
- * @file /src/touchegg/actions/implementation/MoveWindow.h
+ * @file /src/touchegg/actions/implementation/MouseClick.h
  *
  * This file is part of Touchégg.
  *
@@ -16,29 +16,36 @@
  * Touchégg. If not, see <http://www.gnu.org/licenses/>.
  *
  * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
- * @class  MoveWindow
+ * @class  MouseClick
  */
-#ifndef MOVEWINDOW_H
-#define MOVEWINDOW_H
+#ifndef LEFTBUTTONCLICK_H
+#define LEFTBUTTONCLICK_H
 
 #include "src/touchegg/util/Include.h"
 #include "src/touchegg/actions/implementation/Action.h"
 
 /**
- * Moves the window under the cursor.
+ * Emulates a click with the mouse.
  */
-class MoveWindow : public Action
+class MouseClick : public Action
 {
 
 public:
 
-    MoveWindow(const QString &settings, Window window);
+    MouseClick(const QString &settings, Window window);
 
     void executeStart(const QHash<QString, QVariant>& attrs);
 
     void executeUpdate(const QHash<QString, QVariant>& attrs);
 
     void executeFinish(const QHash<QString, QVariant>& attrs);
-};
 
-#endif // MOVEWINDOW_H
+private:
+
+    /**
+     * Button to emulate.
+     */
+    int button;
+
+};
+#endif // LEFTBUTTONCLICK_H

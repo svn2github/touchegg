@@ -1,16 +1,22 @@
 /**
  * @file /src/touchegg/actions/implementation/MinimizeWindow.cpp
  *
- * @~spanish
- * Este archivo es parte del proyecto Touchégg, usted puede redistribuirlo y/o
- * modificarlo bajo los téminos de la licencia GNU GPL v3.
+ * This file is part of Touchégg.
  *
- * @~english
- * This file is part of the Touchégg project, you can redistribute it and/or
- * modify it under the terms of the GNU GPL v3.
+ * Touchégg is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License  as  published by  the  Free Software
+ * Foundation,  either version 3 of the License,  or (at your option)  any later
+ * version.
  *
+ * Touchégg is distributed in the hope that it will be useful,  but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the  GNU General Public License  for more details.
+ *
+ * You should have received a copy of the  GNU General Public License along with
+ * Touchégg. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
  * @class  MinimizeWindow
- * @author José Expósito
  */
 #include "MinimizeWindow.h"
 
@@ -18,8 +24,8 @@
 // **********              CONSTRUCTORS AND DESTRUCTOR             ********** //
 // ************************************************************************** //
 
-MinimizeWindow::MinimizeWindow(const QString& settings)
-        : Action(settings) {}
+MinimizeWindow::MinimizeWindow(const QString &settings, Window window)
+    : Action(settings, window) {}
 
 
 // ************************************************************************** //
@@ -30,23 +36,11 @@ void MinimizeWindow::executeStart(const QHash<QString, QVariant>& /*attrs*/) {}
 
 void MinimizeWindow::executeUpdate(const QHash<QString, QVariant>& /*attrs*/) {}
 
-void MinimizeWindow::executeFinish(const QHash<QString, QVariant>& /*attrs*/) {
-    // Obtenemos la ventana activa
-    Atom atomRet;
-    int size;
-    unsigned long numItems, bytesAfterReturn;
-    unsigned char* propRet;
-
-    XGetWindowProperty(QX11Info::display(), QX11Info::appRootWindow(),
-            XInternAtom(QX11Info::display(), "_NET_ACTIVE_WINDOW", false),
-            0, 1, false, XA_WINDOW, &atomRet, &size, &numItems,
-            &bytesAfterReturn, &propRet);
-    Window window = *((Window *) propRet);
-    XFree(propRet);
-
+void MinimizeWindow::executeFinish(const QHash<QString, QVariant>& /*attrs*/)
+{
     // Minimizamos la ventana
     XClientMessageEvent event;
-    event.window = window;
+    event.window = this->window;
     event.type = ClientMessage;
     event.message_type = XInternAtom(QX11Info::display(), "WM_CHANGE_STATE",
             false);
@@ -56,6 +50,6 @@ void MinimizeWindow::executeFinish(const QHash<QString, QVariant>& /*attrs*/) {
     XSendEvent(QX11Info::display(),
             QX11Info::appRootWindow(QX11Info::appScreen()), false,
             (SubstructureNotifyMask | SubstructureRedirectMask),
-            (XEvent*)&event);
+            (XEvent *)&event);
     XFlush(QX11Info::display());
 }

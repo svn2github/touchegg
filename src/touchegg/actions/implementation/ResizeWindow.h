@@ -1,16 +1,22 @@
 /**
  * @file /src/touchegg/actions/implementation/ResizeWindow.h
  *
- * @~spanish
- * Este archivo es parte del proyecto Touchégg, usted puede redistribuirlo y/o
- * modificarlo bajo los téminos de la licencia GNU GPL v3.
+ * This file is part of Touchégg.
  *
- * @~english
- * This file is part of the Touchégg project, you can redistribute it and/or
- * modify it under the terms of the GNU GPL v3.
+ * Touchégg is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License  as  published by  the  Free Software
+ * Foundation,  either version 3 of the License,  or (at your option)  any later
+ * version.
  *
+ * Touchégg is distributed in the hope that it will be useful,  but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the  GNU General Public License  for more details.
+ *
+ * You should have received a copy of the  GNU General Public License along with
+ * Touchégg. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
  * @class  ResizeWindow
- * @author José Expósito
  */
 #ifndef RESIZEWINDOW_H
 #define RESIZEWINDOW_H
@@ -19,82 +25,20 @@
 #include "src/touchegg/actions/implementation/Action.h"
 
 /**
- * @~spanish
- * Redimensiona la ventana activa.
- *
- * @~english
  * Resizes active window.
  */
-class ResizeWindow : public Action {
+class ResizeWindow : public Action
+{
 
-    private:
+public:
 
-        /**
-         * @~spanish
-         * Ventana a redimensionar.
-         *
-         * @~english
-         * Window to resize.
-         */
-        Window window;
+    ResizeWindow(const QString &settings, Window window);
 
-    public:
+    void executeStart(const QHash<QString, QVariant>& attrs);
 
-        /**
-         * @~spanish
-         * Constructor.
-         * @param settings Configuración de la acción.
-         *
-         * @~english
-         * Constructor
-         * @param settings Action settings.
-         */
-        ResizeWindow(const QString& settings);
+    void executeUpdate(const QHash<QString, QVariant>& attrs);
 
-        /**
-         * @~spanish
-         * Parte de la acción que se ejecutará cuando el gesto se inicie.
-         * @param attrs Atributos del gestos, siendo la clave el nombre del
-         *        atributo (por ejemplo "focus x", "touches"...) y el valor el
-         *        valor del propio atributo.
-         *
-         * @~english
-         * Part of the action that will be executed when the gesture is started.
-         * @param attrs Gesture attributes, where the key is the name of the
-         *        attribute (ie "focus x", "touches") and the value the value of
-         *        the attribute.
-         */
-        void executeStart(const QHash<QString, QVariant>& attrs);
-
-        /**
-         * @~spanish
-         * Parte de la acción que se ejecutará cuando el gesto se actualice.
-         * @param attrs Atributos del gestos, siendo la clave el nombre del
-         *        atributo (por ejemplo "focus x", "touches"...) y el valor el
-         *        valor del propio atributo.
-         *
-         * @~english
-         * Part of the action that will be executed when the gesture is updated.
-         * @param attrs Gesture attributes, where the key is the name of the
-         *        attribute (ie "focus x", "touches") and the value the value of
-         *        the attribute.
-         */
-        void executeUpdate(const QHash<QString, QVariant>& attrs);
-
-        /**
-         * @~spanish
-         * Parte de la acción que se ejecutará cuando el gesto se finalice.
-         * @param attrs Atributos del gestos, siendo la clave el nombre del
-         *        atributo (por ejemplo "focus x", "touches"...) y el valor el
-         *        valor del propio atributo.
-         *
-         * @~english
-         * Part of the action that will be executed when the gesture finish.
-         * @param attrs Gesture attributes, where the key is the name of the
-         *        attribute (ie "focus x", "touches") and the value the value of
-         *        the attribute.
-         */
-        void executeFinish(const QHash<QString, QVariant>& attrs);
+    void executeFinish(const QHash<QString, QVariant>& attrs);
 
 };
 

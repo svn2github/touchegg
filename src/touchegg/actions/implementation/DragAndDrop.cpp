@@ -1,16 +1,22 @@
 /**
  * @file /src/touchegg/actions/implementation/DragAndDrop.cpp
  *
- * @~spanish
- * Este archivo es parte del proyecto Touchégg, usted puede redistribuirlo y/o
- * modificarlo bajo los téminos de la licencia GNU GPL v3.
+ * This file is part of Touchégg.
  *
- * @~english
- * This file is part of the Touchégg project, you can redistribute it and/or
- * modify it under the terms of the GNU GPL v3.
+ * Touchégg is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License  as  published by  the  Free Software
+ * Foundation,  either version 3 of the License,  or (at your option)  any later
+ * version.
  *
+ * Touchégg is distributed in the hope that it will be useful,  but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the  GNU General Public License  for more details.
+ *
+ * You should have received a copy of the  GNU General Public License along with
+ * Touchégg. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
  * @class  DragAndDrop
- * @author José Expósito
  */
 #include "DragAndDrop.h"
 
@@ -18,20 +24,39 @@
 // **********              CONSTRUCTORS AND DESTRUCTOR             ********** //
 // ************************************************************************** //
 
-DragAndDrop::DragAndDrop(const QString& settings)
-        : Action(settings) {}
+DragAndDrop::DragAndDrop(const QString &settings, Window window)
+    : Action(settings, window)
+{
+    this->button = 1;
+
+    QStringList strl = settings.split("=");
+    if (strl.length() == 2 && strl.at(0) == "BUTTON") {
+        bool ok = false;
+        int aux = strl.at(1).toInt(&ok);
+
+        if (ok && aux >= 1 && aux <= 9)
+            this->button = aux;
+        else
+            qWarning() << "Error reading MOUSE_CLICK settings, using " <<
+                    "the default settings";
+    } else
+        qWarning() << "Error reading MOUSE_CLICK settings, using " <<
+                "the default settings";
+}
 
 
 // ************************************************************************** //
 // **********                    PUBLIC METHODS                    ********** //
 // ************************************************************************** //
 
-void DragAndDrop::executeStart(const QHash<QString, QVariant>& /*attrs*/) {
-    XTestFakeButtonEvent(QX11Info::display(), Button1, true, 0);
+void DragAndDrop::executeStart(const QHash<QString, QVariant>& /*attrs*/)
+{
+    XTestFakeButtonEvent(QX11Info::display(), this->button, true, 0);
 }
 
-void DragAndDrop::executeUpdate(const QHash<QString, QVariant>& attrs) {
-    if(!attrs.contains(GEIS_GESTURE_ATTRIBUTE_DELTA_X)
+void DragAndDrop::executeUpdate(const QHash<QString, QVariant>& attrs)
+{
+    if (!attrs.contains(GEIS_GESTURE_ATTRIBUTE_DELTA_X)
             || !attrs.contains(GEIS_GESTURE_ATTRIBUTE_DELTA_Y))
         return;
 
@@ -41,6 +66,7 @@ void DragAndDrop::executeUpdate(const QHash<QString, QVariant>& attrs) {
             + attrs.value(GEIS_GESTURE_ATTRIBUTE_DELTA_Y).toFloat());
 }
 
-void DragAndDrop::executeFinish(const QHash<QString, QVariant>& /*attrs*/) {
-    XTestFakeButtonEvent(QX11Info::display(), Button1, false, 0);
+void DragAndDrop::executeFinish(const QHash<QString, QVariant>& /*attrs*/)
+{
+    XTestFakeButtonEvent(QX11Info::display(), this->button, false, 0);
 }

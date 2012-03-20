@@ -1,16 +1,22 @@
 /**
  * @file /src/touchegg/actions/implementation/SendKeys.cpp
  *
- * @~spanish
- * Este archivo es parte del proyecto Touchégg, usted puede redistribuirlo y/o
- * modificarlo bajo los téminos de la licencia GNU GPL v3.
+ * This file is part of Touchégg.
  *
- * @~english
- * This file is part of the Touchégg project, you can redistribute it and/or
- * modify it under the terms of the GNU GPL v3.
+ * Touchégg is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License  as  published by  the  Free Software
+ * Foundation,  either version 3 of the License,  or (at your option)  any later
+ * version.
  *
+ * Touchégg is distributed in the hope that it will be useful,  but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the  GNU General Public License  for more details.
+ *
+ * You should have received a copy of the  GNU General Public License along with
+ * Touchégg. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
  * @class  SendKeys
- * @author José Expósito
  */
 #include "SendKeys.h"
 
@@ -18,49 +24,50 @@
 // **********              CONSTRUCTORS AND DESTRUCTOR             ********** //
 // ************************************************************************** //
 
-SendKeys::SendKeys(const QString& settings) : Action(settings) {
-    if(settings.split(":").length() != 2) {
-        qWarning() << "Error reading SEND_KEYS settings";
-        return;
-    }
+SendKeys::SendKeys(const QString &settings, Window window)
+    : Action(settings, window)
+{
+    // Leemos las teclas a enviar desde la configuración
+    QStringList keys = settings.split("+");
 
-    QString allHoldDown = settings.split(":").at(0);
-    QString allBetween  = settings.split(":").at(1);
-
-    if(allHoldDown.split("=").length() != 2
-            || allBetween.split("=").length() != 2) {
-        qWarning() << "Error reading SEND_KEYS settings";
-        return;
-    }
-
-    if(allHoldDown.split("=").at(0) != "HOLD_DOWN"
-            || allBetween.split("=").at(0) != "PRESS") {
-        qWarning() << "Error reading SEND_KEYS settings";
-        return;
-    }
-
-    QString holdDownStr      = allHoldDown.split("=").at(1);
-    QString betweenStr       = allBetween.split("=").at(1);
-    QStringList holdDownList = holdDownStr.split("|");
-    QStringList betweenList  = betweenStr.split("|");
-
-    for(int n=0; n<holdDownList.length(); n++) {
-        QString keySymStr = holdDownList.at(n);
-        if(keySymStr != "") {
-            KeySym keySym = XStringToKeysym(keySymStr.toStdString().c_str());
+    foreach(QString key, keys) {
+        if (key == "Control" || key == "Shift" || key == "Super"
+                || key == "Alt") {
+            key = key.append("_L");
+            KeySym keySym = XStringToKeysym(key.toStdString().c_str());
             KeyCode keyCode = XKeysymToKeycode(QX11Info::display(), keySym);
             this->holdDownKeys.append(keyCode);
-        }
-    }
 
-    for(int n=0; n<betweenList.length(); n++) {
-        QString keySymStr = betweenList.at(n);
-        if(keySymStr != "") {
-            KeySym keySym = XStringToKeysym(keySymStr.toStdString().c_str());
+        } else if (key == "AltGr") {
+            KeySym keySym = XStringToKeysym("Alt_R");
+            KeyCode keyCode = XKeysymToKeycode(QX11Info::display(), keySym);
+            this->holdDownKeys.append(keyCode);
+
+        } else {
+            KeySym keySym = XStringToKeysym(key.toStdString().c_str());
             KeyCode keyCode = XKeysymToKeycode(QX11Info::display(), keySym);
             this->pressBetweenKeys.append(keyCode);
         }
     }
+
+    // Traemos al frente la ventana bajo el cursor, ya que solo se pueden enviar
+    // teclas a la ventana activa
+    XClientMessageEvent event;
+    event.window = this-> window;
+    event.type = ClientMessage;
+    event.message_type = XInternAtom(QX11Info::display(), "_NET_ACTIVE_WINDOW",
+            false);
+    event.format = 32;
+    event.data.l[0] = 2;
+    event.data.l[1] = CurrentTime;
+    event.data.l[2] = 0;
+
+    XSendEvent(QX11Info::display(),
+            QX11Info::appRootWindow(QX11Info::appScreen()), false,
+            (SubstructureNotifyMask | SubstructureRedirectMask),
+            (XEvent *)&event);
+
+    XFlush(QX11Info::display());
 }
 
 
@@ -72,20 +79,23 @@ void SendKeys::executeStart(const QHash<QString, QVariant>& /*attrs*/) {}
 
 void SendKeys::executeUpdate(const QHash<QString, QVariant>& /*attrs*/) {}
 
-void SendKeys::executeFinish(const QHash<QString, QVariant>& /*attrs*/) {
+void SendKeys::executeFinish(const QHash<QString, QVariant>& /*attrs*/)
+{
 
-    for(int n=0; n<this->holdDownKeys.length(); n++) {
-        XTestFakeKeyEvent(QX11Info::display(),this->holdDownKeys.at(n),true,0);
+    for (int n = 0; n < this->holdDownKeys.length(); n++) {
+        XTestFakeKeyEvent(QX11Info::display(), this->holdDownKeys.at(n), true,
+                0);
     }
 
-    for(int n=0; n<this->pressBetweenKeys.length(); n++) {
+    for (int n = 0; n < this->pressBetweenKeys.length(); n++) {
         XTestFakeKeyEvent(QX11Info::display(), this->pressBetweenKeys.at(n),
                 true, 0);
         XTestFakeKeyEvent(QX11Info::display(), this->pressBetweenKeys.at(n),
                 false, 0);
     }
 
-    for(int n=0; n<this->holdDownKeys.length(); n++) {
-        XTestFakeKeyEvent(QX11Info::display(),this->holdDownKeys.at(n),false,0);
+    for (int n = 0; n < this->holdDownKeys.length(); n++) {
+        XTestFakeKeyEvent(QX11Info::display(), this->holdDownKeys.at(n), false,
+                0);
     }
 }

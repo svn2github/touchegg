@@ -1,24 +1,20 @@
 TEMPLATE     = app
 TARGET       = touchegg
-QT          += core gui
-OBJECTS_DIR += build
-MOC_DIR     += build
+QT          += gui core xml
 LIBS        += -lutouch-geis -lX11 -lXtst -lXext
 //DEFINES      = QT_NO_DEBUG_OUTPUT
-
 
 target.path  = /usr/bin
 config.path  = /usr/share/touchegg
 config.files = installation/touchegg.conf
-menu.path    = /usr/share/applications
-menu.files   = installation/touchegg.desktop
-icon.path    = /usr/share/icons
-icon.files   = installation/touchegg.png
-INSTALLS    += target config menu icon
-
+INSTALLS    += target config
 
 include(src/touchegg/touchegg.pri)
 
 OTHER_FILES += \
     documentation/doxyfile_es \
-    documentation/doxyfile_en
+    documentation/doxyfile_en \
+    README \
+    COPYING \
+    CHANGELOG \
+    COPYRIGHT

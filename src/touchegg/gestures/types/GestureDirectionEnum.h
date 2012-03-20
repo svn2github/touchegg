@@ -1,5 +1,5 @@
 /**
- * @file src/touchegg/gestures/types/GestureTypeEnum.h
+ * @file src/touchegg/gestures/types/GestureDirectionEnum.h
  *
  * This file is part of Touchégg.
  *
@@ -16,59 +16,50 @@
  * Touchégg. If not, see <http://www.gnu.org/licenses/>.
  *
  * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
- * @class  GestureTypeEnum
+ * @class  GestureDirectionEnum
  */
-#ifndef GESTURETYPEENUM_H
-#define GESTURETYPEENUM_H
+#ifndef GESTUREDIRECTIONENUM_H
+#define GESTUREDIRECTIONENUM_H
 
 #include "src/touchegg/util/Include.h"
 
 /**
- * Contains a enumeradted type with supported gestures.
+ * Contains an enumerated type with availables directions of gestures.
  */
-class GestureTypeEnum : public QObject
+class GestureDirectionEnum : public QObject
 {
 
     Q_OBJECT
-    Q_ENUMS(GestureType);
+    Q_ENUMS(GestureDirection);
 
 public:
 
     /**
-     * Enumerated type with supported gestures.
+     * Enumerated type with supported directions.
      */
-    enum GestureType {
-        TAP,
-        DRAG,
-        PINCH,
-        ROTATE,
-        TAP_AND_HOLD,
-        DOUBLE_TAP
+    enum GestureDirection {
+        NO_DIRECTION,
+        ALL,
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT,
+        IN,
+        OUT
     };
 
     /**
      * Converts the enum to QString.
      * @return The QString.
      */
-    static QString getValue(GestureType gtEnum);
+    static QString getValue(GestureDirection gtEnum);
 
     /**
      * Converts the indicated QString to the equivalent enum type.
      * @return The enum type.
      */
-    static GestureType getEnum(const QString &gtString);
-
-    /**
-     * Returns a list with the equivalents uTouch-GEIS gestures to the
-     * indicated gesture, if it doesn't have equivalent, returns an empty
-     * list.
-     * For example, the equivalent of a tap_and_hold gesture is
-     * {GEIS_GESTURE_TAP, GEIS_GESTURE_DRAG}.
-     * @param  gt The gesture.
-     * @return The equivalent.
-     */
-    static QStringList getGeisEquivalent(GestureType gt);
+    static GestureDirection getEnum(const QString &gtString);
 
 };
 
-#endif // GESTURETYPEENUM_H
+#endif // GESTUREDIRECTIONENUM_H

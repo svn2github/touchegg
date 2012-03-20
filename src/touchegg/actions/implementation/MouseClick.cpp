@@ -1,5 +1,5 @@
 /**
- * @file /src/touchegg/actions/implementation/CloseWindow.cpp
+ * @file /src/touchegg/actions/implementation/MouseClick.cpp
  *
  * This file is part of Touchégg.
  *
@@ -16,42 +16,46 @@
  * Touchégg. If not, see <http://www.gnu.org/licenses/>.
  *
  * @author José Expósito <jose.exposito89@gmail.com> (C) 2011
- * @class  CloseWindow
+ * @class  MouseClick
  */
-#include "CloseWindow.h"
+#include "MouseClick.h"
 
 // ************************************************************************** //
 // **********              CONSTRUCTORS AND DESTRUCTOR             ********** //
 // ************************************************************************** //
 
-CloseWindow::CloseWindow(const QString &settings, Window window)
-    : Action(settings, window) {}
+MouseClick::MouseClick(const QString &settings, Window window)
+    : Action(settings, window)
+{
+    this->button = 1;
+
+    QStringList strl = settings.split("=");
+    if (strl.length() == 2 && strl.at(0) == "BUTTON") {
+        bool ok = false;
+        int aux = strl.at(1).toInt(&ok);
+
+        if (ok && aux >= 1 && aux <= 9)
+            this->button = aux;
+        else
+            qWarning() << "Error reading MOUSE_CLICK settings, using " <<
+                    "the default settings";
+    } else
+        qWarning() << "Error reading MOUSE_CLICK settings, using " <<
+                "the default settings";
+}
 
 
 // ************************************************************************** //
 // **********                    PUBLIC METHODS                    ********** //
 // ************************************************************************** //
 
-void CloseWindow::executeStart(const QHash<QString, QVariant>& /*attrs*/) {}
+void MouseClick::executeStart(const QHash<QString, QVariant>& /*attrs*/) {}
 
-void CloseWindow::executeUpdate(const QHash<QString, QVariant>& /*attrs*/) {}
+void MouseClick::executeUpdate(const QHash<QString, QVariant>& /*attrs*/) {}
 
-void CloseWindow::executeFinish(const QHash<QString, QVariant>& /*attrs*/)
+void MouseClick::executeFinish(const QHash<QString, QVariant>& /*attrs*/)
 {
-    // Cerramos la ventana
-    XClientMessageEvent event;
-    event.window = this->window;
-    event.type = ClientMessage;
-    event.message_type = XInternAtom(QX11Info::display(), "_NET_CLOSE_WINDOW",
-            false);
-    event.format = 32;
-    event.data.l[0] = CurrentTime;
-    event.data.l[1] = 2;
-
-    XSendEvent(QX11Info::display(),
-            QX11Info::appRootWindow(QX11Info::appScreen()), false,
-            (SubstructureNotifyMask | SubstructureRedirectMask),
-            (XEvent *)&event);
-
+    XTestFakeButtonEvent(QX11Info::display(), this->button, true, 0);
+    XTestFakeButtonEvent(QX11Info::display(), this->button, false, 0);
     XFlush(QX11Info::display());
 }
